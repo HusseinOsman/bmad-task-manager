@@ -1,17 +1,17 @@
 ---
 title: "Product Brief: Simple Task Manager API"
-status: draft
+status: final
 created: 2026-06-22
 updated: 2026-06-22
 ---
 
 # Product Brief: Simple Task Manager API
 
-> Scope decisions confirmed (see **Confirmed Decisions** below). Ready to feed the PRD (`bmad-prd`).
+> Finalized — scope and technical decisions confirmed. Feeds the PRD (`bmad-prd`).
 
 ## Executive Summary
 
-The Simple Task Manager API is a small, well-structured **NestJS REST backend** for managing tasks (to-dos). It exists to remove the undifferentiated boilerplate every developer rewrites when they need a task store: CRUD endpoints, validation, persistence, auth, filtering, and docs. Instead of starting from a blank `nest new`, a developer drops this in, points a client at it, and is productive in minutes.
+The Simple Task Manager API is a small, well-structured **NestJS REST backend** for managing tasks (to-dos). It exists to remove the undifferentiated boilerplate every developer rewrites when they need a task store: CRUD endpoints, validation, persistence, auth, filtering, and docs. Instead of starting from a blank `nest new`, a developer drops it in, points a client at it, and is productive in minutes.
 
 The goal is a **practical, idiomatic, extensible foundation** — not a feature-rich product. It should read like the NestJS reference implementation you wish came in the box: clean modules, DTO validation, typed persistence, OpenAPI docs, and tests. Simple by default, easy to extend.
 
@@ -37,36 +37,27 @@ This is hours-to-days of repetitive work that delays the part that actually matt
 
 Success for them: integrate fast, trust the structure, extend without fighting the codebase.
 
-## The Solution
+## Solution & Key Features
 
-A single NestJS service exposing a clean REST API over a `Task` resource, backed by PostgreSQL, with:
+A single NestJS service exposing a clean REST API over a `Task` resource, backed by PostgreSQL. The emphasis is on **shape and clarity** — idiomatic NestJS that's obvious to read and safe to extend.
 
-- Typed DTOs + validation on every write
-- JWT auth so each user only sees their own tasks
-- Filter / sort / paginate on the list endpoint
-- Auto-generated OpenAPI (Swagger) docs
-- Consistent error envelope + health check
-- Unit + e2e tests and Dockerized local dev
-
-The emphasis is on **shape and clarity** — idiomatic NestJS that's obvious to read and safe to extend.
-
-## Key Features (MVP)
+**MVP includes:**
 
 1. **Task CRUD** — create, get-by-id, list, update (full/partial), delete.
-2. **Task model** — `title`, `description`, `status` (`todo` / `in_progress` / `done`), `priority` (`low` / `med` / `high`), `dueDate`, `createdAt`, `updatedAt`.
-3. **List ergonomics** — filter by status/priority, sort (e.g. by `dueDate`/`priority`), and pagination.
+2. **Task model** — `title`, `description`, `status` (`todo`/`in_progress`/`done`), `priority` (`low`/`med`/`high`), `dueDate`, `createdAt`, `updatedAt`.
+3. **List ergonomics** — filter by status/priority, sort (e.g. by `dueDate`/`priority`), and paginate.
 4. **Validation** — `class-validator` DTOs; reject malformed input with clear 400s.
-5. **Auth & ownership** — JWT-based register/login; tasks scoped to the authenticated user.
+5. **Auth & ownership** — JWT register/login; tasks scoped to the authenticated user.
 6. **Persistence** — PostgreSQL via TypeORM with migrations.
 7. **API docs** — `@nestjs/swagger` at `/docs`.
 8. **Operational basics** — health-check endpoint, consistent error responses, env-based config.
-9. **Tests** — unit (services) + e2e (endpoints), runnable in CI.
+9. **Tests** — unit (services) + e2e (endpoints), CI-ready.
 
 ## Scope
 
-**In (v1):** everything in Key Features above — a single-resource (`Task`) authenticated REST API with persistence, docs, and tests.
+**In (v1):** everything in Solution & Key Features above — a single-resource (`Task`) authenticated REST API with persistence, docs, and tests.
 
-**Explicitly out (deferred):**
+**Explicitly out (deferred to v2+):**
 - Any frontend/UI
 - Real-time / websockets
 - Collaboration: sharing, teams, roles beyond owner, assignment
@@ -76,32 +67,25 @@ The emphasis is on **shape and clarity** — idiomatic NestJS that's obvious to 
 - GraphQL
 - Cloud deployment / hosting (v1 runs locally via Docker Compose)
 
-Boundary, not a wishlist: if it isn't required to manage your own tasks over HTTP, it's v2.
+Boundary, not a wishlist: if it isn't essential to managing your own tasks over HTTP, it's v2.
 
 ## Success Criteria
 
-- **Time-to-first-call:** a developer can clone, set env, `docker compose up`, and hit a documented endpoint in **< 15 min**.
+- **Time-to-first-call:** a developer can clone, configure `.env`, `docker compose up`, and hit a documented endpoint in **< 15 min**.
 - **Coverage:** core CRUD + auth flows covered by passing e2e tests; CI green.
 - **Docs:** 100% of endpoints visible and try-able in Swagger.
 - **Correctness:** auth isolation verified (user A cannot read/modify user B's tasks).
-- **Extensibility (qualitative):** adding a new field or endpoint follows the existing module pattern with no refactor.
+- **Extensibility (qualitative):** adding a new field or endpoint follows the existing module pattern without refactoring existing code.
 
-## Technical Context
+## Technical Decisions (Confirmed)
 
-- **Framework:** NestJS (TypeScript), REST.
-- **Database / ORM:** PostgreSQL + TypeORM (entities + migrations).
-- **Auth:** JWT via Passport (`@nestjs/passport`, `passport-jwt`).
-- **Dev experience:** Docker Compose for app + Postgres; `.env` config; npm scripts for dev/test/migrate.
-- **Deployment:** out of scope for v1 — local Docker only.
-
-## Confirmed Decisions
-
-1. **Auth:** JWT, multi-user — every task is owned by and scoped to the authenticated user.
-2. **Database & ORM:** PostgreSQL + TypeORM (with migrations).
-3. **API style:** REST (Swagger/OpenAPI docs). GraphQL is out.
-4. **Task fields:** `title`, `description`, `status`, `priority`, `dueDate`, `createdAt`, `updatedAt` (as proposed).
-5. **Deployment:** local Docker Compose only for v1; no cloud/hosting target.
+1. **Framework & API:** NestJS (TypeScript), REST with Swagger/OpenAPI docs. GraphQL is out.
+2. **Database & ORM:** PostgreSQL + TypeORM (entities + migrations).
+3. **Auth:** JWT via Passport (`@nestjs/passport`, `passport-jwt`); multi-user with per-task ownership.
+4. **Task fields:** `title`, `description`, `status`, `priority`, `dueDate`, `createdAt`, `updatedAt`.
+5. **Dev environment:** Docker Compose for app + Postgres; `.env` config; npm scripts for dev/test/migrate.
+6. **Deployment:** local Docker Compose only for v1; no cloud/hosting target.
 
 ## Vision
 
-If it lands, this becomes the **go-to NestJS task API starter** — the clean base that teams fork and grow into a real product, adding collaboration, labels, and real-time as needed, without ever having to rip out the foundation.
+Grow into the clean base teams fork into a real product — adding collaboration, labels, and real-time later, without ever ripping out the foundation.
