@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+.git
+.env
+_bmad
+_bmad-output
+.agents
+npm-debug.log
